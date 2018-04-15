@@ -13,7 +13,7 @@ from skimage.transform import rotate
 def keras_model():
 
     model = Sequential()
-    model.add(Cropping2D(cropping=((25,10), (0,0)), input_shape=(80,160,3),data_format='channels_first'))
+    model.add(Cropping2D(cropping=((25,10), (0,0)), input_shape=(80,160,3)))
     model.add(BatchNormalization(epsilon=0.001))
     model.add(Convolution2D(24,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
     model.add(Dropout(0.5))
