@@ -123,7 +123,7 @@ nb_val = len(validation_images)
 model.fit_generator(trainGen,
                    samples_per_epoch = nb_train // batch_size,
                    validation_data = validationGen,
-                   vnb_val_samples = nb_val // batch_size,
+                   nb_val_samples = nb_val // batch_size,
                    nb_epoch = 5,
                    verbose = 1)
 
