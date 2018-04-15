@@ -68,7 +68,7 @@ with open(path+"driving_log.csv") as f:
           images.append((left,-(angle + applied_angle), True))
           images.append((right,-(angle - applied_angle), True))
 
-with open(path+'/data2/driving_log.csv') as f:
+with open(path+'driving_log.csv') as f:
     reader = csv.reader(f)
     for row in reader:
         center = row[0][65:]
