@@ -6,7 +6,7 @@ from keras.layers import BatchNormalization,Input, Cropping2D, Dropout
 import json
 import numpy as np
 from skimage import color
-from skimage import io,
+from skimage import io
 import sklearn
 from skimage.transform import resize
 from skimage.transform import rotate
