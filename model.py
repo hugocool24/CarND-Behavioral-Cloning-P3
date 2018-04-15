@@ -37,7 +37,6 @@ def keras_model():
         outfile.write(json.dumps(json.loads(model.to_json()), indent=2))
     return model
 
-import cv2
 import csv
 import os
 import random
