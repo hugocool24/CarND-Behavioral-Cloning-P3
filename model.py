@@ -41,8 +41,8 @@ import csv
 import os
 import random
 from matplotlib import pyplot as plt
-path = "drive/CarND-Behavioral-Cloning-P3/Data/"
-path2 = "drive/CarND-Behavioral-Cloning-P3/data2/"
+path = "/CarND-Behavioral-Cloning-P3/Data/"
+path2 = "/CarND-Behavioral-Cloning-P3/data2/"
 images = []
 applied_angle = 0.2
 batch_size = 64
