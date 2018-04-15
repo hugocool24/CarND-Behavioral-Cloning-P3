@@ -11,10 +11,9 @@ import sklearn
 from skimage.transform import resize
 from skimage.transform import rotate
 def keras_model():
-    input_image=(800, 600, 3)
 
     model = Sequential()
-    model.add(Cropping2D(cropping=((25,10), (0,0)), input_shape=(80,160,3)))
+    model.add(Cropping2D(cropping=((25,10), (0,0)), input_shape=(80,160,3),data_format='channels_first'))
     model.add(BatchNormalization(epsilon=0.001))
     model.add(Convolution2D(24,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
     model.add(Dropout(0.5))
@@ -91,6 +90,7 @@ with open(path+'driving_log.csv') as f:
 def generator(driveImg):
     batch_size = 64
     image = sklearn.utils.shuffle(driveImg)
+    counter = 0
     while True:
         images = []
         angles = []
@@ -100,11 +100,12 @@ def generator(driveImg):
             load_image = resize(load_image, load_image.shape[0] / 2, load_image.shape[1] / 2)
             if img[2] == True:
                 load_image = load_image[:, ::-1]
+            print(load_image.shape)
             images.append(load_image)
             angles.append(img[1])
             if  len(images) == batch_size:
-                X_train = np.array(images)
-                y_train = np.array(angles)
+                X_train = np.asarry(images)
+                y_train = np.asarray(angles)
                 yield X_train, y_train
 
 from sklearn.model_selection import train_test_split
