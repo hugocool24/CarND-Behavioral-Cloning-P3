@@ -41,12 +41,14 @@ import csv
 import os
 import random
 from matplotlib import pyplot as plt
-path = "/CarND-Behavioral-Cloning-P3/Data/"
-path2 = "/CarND-Behavioral-Cloning-P3/data2/"
+import sys
+
+path="./Data/"
+path2="./data2/"
 images = []
 applied_angle = 0.2
 batch_size = 64
-with open(path +'driving_log.csv') as f:
+with open(path+"driving_log.csv") as f:
     reader = csv.reader(f)
     for row in reader:
         center = row[0][65:]
@@ -66,7 +68,7 @@ with open(path +'driving_log.csv') as f:
           images.append((left,-(angle + applied_angle), True))
           images.append((right,-(angle - applied_angle), True))
 
-with open(path2 +'driving_log.csv') as f:
+with open(path+'/data2/driving_log.csv') as f:
     reader = csv.reader(f)
     for row in reader:
         center = row[0][65:]
