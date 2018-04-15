@@ -100,12 +100,11 @@ def generator(driveImg):
             load_image = resize(load_image, load_image.shape[0] / 2, load_image.shape[1] / 2)
             if img[2] == True:
                 load_image = load_image[:, ::-1]
-            print(load_image.shape)
             images.append(load_image)
             angles.append(img[1])
             if  len(images) == batch_size:
-                X_train = np.asarry(images)
-                y_train = np.asarray(angles)
+                X_train = np.array(images)
+                y_train = np.array(angles)
                 yield X_train, y_train
 
 from sklearn.model_selection import train_test_split
