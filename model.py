@@ -20,7 +20,7 @@ import sys
 def keras_model():
 
     model = Sequential()
-    model.add(Cropping2D(cropping=((10,25), (0,0)), input_shape=(160,80,3)))
+    model.add(Cropping2D(cropping=((25,10), (0,0)), input_shape=(160,80,1)))
     model.add(BatchNormalization(epsilon=0.001))
     model.add(Convolution2D(24,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
     model.add(Dropout(0.5))
@@ -48,6 +48,7 @@ path2="./data2/"
 images = []
 applied_angle = 0.2
 batch_size = 64
+
 with open(path+"driving_log.csv") as f:
     reader = csv.reader(f)
     for row in reader:
@@ -57,36 +58,37 @@ with open(path+"driving_log.csv") as f:
         angle = float(row[3])
 
         ### Append non-flipped images
-        images.append((path+center,angle, False))
+        images.append((path+center, angle, False))
         images.append((path+left, angle + applied_angle, False))
-        images.append((path+right,angle - applied_angle, False))
+        images.append((path+right, angle - applied_angle, False))
 
 
         ### Append flipped images
         if(random.randint(0,10)>4):
-          images.append((path+center,angle, True))
-          images.append((path+left,-(angle + applied_angle), True))
-          images.append((path+right,-(angle - applied_angle), True))
+          images.append((path+center, angle, True))
+          images.append((path+left, -(angle + applied_angle), True))
+          images.append((path+right, -(angle - applied_angle), True))
 
-with open(path+'driving_log.csv') as f:
+with open(path2+'driving_log.csv') as f:
     reader = csv.reader(f)
+    next(reader, None)
     for row in reader:
-        center = row[0]
-        left = row[1]
-        right = row[2]
-        angle = float(row[3])
+        center = row[0].replace(" ", "")
+        left = row[1].replace(" ", "")
+        right = row[2].replace(" ", "")
+        angle = float(row[3].replace(" ", ""))
 
         ### Append non-flipped images
-        images.append((path2+center,angle, False))
+        images.append((path2+center, angle, False))
         images.append((path2+left, angle + applied_angle, False))
-        images.append((path2+right,angle - applied_angle, False))
+        images.append((path2+right, angle - applied_angle, False))
 
 
         ### Append flipped images
         if(random.randint(0,10)>4):
-          images.append((path2+center,angle, True))
-          images.append((path2+left,-(angle + applied_angle), True))
-          images.append((path2+right,-(angle - applied_angle), True))
+          images.append((path2+center, angle, True))
+          images.append((path2+left, -(angle + applied_angle), True))
+          images.append((path2+right, -(angle - applied_angle), True))
 
 def generator(driveImg):
     batch_size = 64
