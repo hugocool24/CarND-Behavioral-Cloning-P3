@@ -20,17 +20,17 @@ import sys
 def keras_model():
 
     model = Sequential()
-    model.add(Cropping2D(cropping=((70,24), (0,0)), input_shape=(160,320,3)))
+    model.add(Cropping2D(cropping=((24,10), (0,0)), input_shape=(80,160,3)))
     model.add(Lambda(lambda x: (x/255) - 0.5))
-    model.add(Convolution2D(24,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
+    model.add(Convolution2D(12,2,2,border_mode="valid", activation="relu", subsample=(2,2)))
     model.add(Dropout(0.25))
-    model.add(Convolution2D(36,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
+    model.add(Convolution2D(16,2,2,border_mode="valid", activation="relu", subsample=(2,2)))
     model.add(Dropout(0.25))
-    model.add(Convolution2D(48,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
+    model.add(Convolution2D(24,2,2,border_mode="valid", activation="relu", subsample=(2,2)))
     model.add(Dropout(0.25))
-    model.add(Convolution2D(64,3,3,border_mode="valid", activation="relu", subsample=(1,1)))
+    model.add(Convolution2D(32,1,1,border_mode="valid", activation="relu", subsample=(1,1)))
     model.add(Dropout(0.25))
-    model.add(Convolution2D(64,3,3,border_mode="valid", activation="relu", subsample=(1,1)))
+    model.add(Convolution2D(32,1,1,border_mode="valid", activation="relu", subsample=(1,1)))
     model.add(Dropout(0.25))
     model.add(Flatten())
     model.add(Dense(1164, activation="relu"))
@@ -99,6 +99,8 @@ def generator(driveImg):
         angles = []
         for img in image:
             load_image = io.imread(img[0])
+            #Resize the image so the training goes faster
+            load_image = rescale(load_image, 0.5)
             if img[2] == True:
                 load_image = load_image[:, ::-1]
             images.append(load_image)
