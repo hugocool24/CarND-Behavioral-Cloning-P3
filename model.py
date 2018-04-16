@@ -2,7 +2,7 @@ from keras.models import Sequential
 from keras.layers.core import Dense, Activation, Flatten
 from keras.layers.convolutional import Convolution2D
 from keras.layers.pooling import MaxPooling2D
-from keras.layers import BatchNormalization,Input, Cropping2D, Dropout
+from keras.layers import BatchNormalization,Input, Cropping2D, Dropout, Lambda
 import json
 import numpy as np
 from skimage import color
@@ -20,8 +20,8 @@ import sys
 def keras_model():
 
     model = Sequential()
-    #model.add(Cropping2D(cropping=((25,10), (0,0)), input_shape=(80,160,3)))
-    model.add(BatchNormalization(epsilon=0.001,input_shape=(80,160,3)))
+    model.add(Cropping2D(cropping=((70,24), (0,0)), input_shape=(160,320,3)))
+    model.add(Lambda(lambda x: (x/255) - 0.5))
     model.add(Convolution2D(24,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
     model.add(Dropout(0.25))
     model.add(Convolution2D(36,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
@@ -47,7 +47,7 @@ path="./Data/"
 path2="./data2/"
 images = []
 applied_angle = 0.2
-batch_size = 64
+batch_size = 32
 
 with open(path+"driving_log.csv") as f:
     reader = csv.reader(f)
@@ -99,9 +99,6 @@ def generator(driveImg):
         angles = []
         for img in image:
             load_image = io.imread(img[0])
-            #Resize the image so the training goes faster
-            load_image = rescale(load_image, 0.5)
-            #Mirror the image
             if img[2] == True:
                 load_image = load_image[:, ::-1]
             images.append(load_image)
@@ -119,7 +116,7 @@ validationGen = generator(validation_images)
 # Train model
 model = keras_model()
 model.compile(loss='mse', optimizer='adam')
-batch_size = 16
+batch_size = 32
 nb_train = len(train_images)
 nb_val = len(validation_images)
 
