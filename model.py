@@ -23,15 +23,15 @@ def keras_model():
     #model.add(Cropping2D(cropping=((25,10), (0,0)), input_shape=(80,160,3)))
     model.add(BatchNormalization(epsilon=0.001,input_shape=(80,160,3)))
     model.add(Convolution2D(24,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
-    model.add(Dropout(0.5))
+    model.add(Dropout(0.25))
     model.add(Convolution2D(36,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
-    model.add(Dropout(0.5))
+    model.add(Dropout(0.25))
     model.add(Convolution2D(48,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
-    model.add(Dropout(0.5))
+    model.add(Dropout(0.25))
     model.add(Convolution2D(64,3,3,border_mode="valid", activation="relu", subsample=(1,1)))
-    model.add(Dropout(0.5))
+    model.add(Dropout(0.25))
     model.add(Convolution2D(64,3,3,border_mode="valid", activation="relu", subsample=(1,1)))
-    model.add(Dropout(0.5))
+    model.add(Dropout(0.25))
     model.add(Flatten())
     model.add(Dense(1164, activation="relu"))
     model.add(Dense(100, activation="relu"))
@@ -91,7 +91,7 @@ with open(path2+'driving_log.csv') as f:
           images.append((path2+right, -(angle - applied_angle), True))
 
 def generator(driveImg):
-    batch_size = 32
+    batch_size = 16
     image = sklearn.utils.shuffle(driveImg)
     counter = 0
     while True:
@@ -119,7 +119,7 @@ validationGen = generator(validation_images)
 # Train model
 model = keras_model()
 model.compile(loss='mse', optimizer='adam')
-batch_size = 32
+batch_size = 16
 nb_train = len(train_images)
 nb_val = len(validation_images)
 
