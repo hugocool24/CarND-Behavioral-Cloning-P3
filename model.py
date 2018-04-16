@@ -20,8 +20,8 @@ import sys
 def keras_model():
 
     model = Sequential()
-    model.add(Cropping2D(cropping=((25,10), (0,0)), input_shape=(160,80,1)))
-    model.add(BatchNormalization(epsilon=0.001))
+    #model.add(Cropping2D(cropping=((25,10), (0,0)), input_shape=(80,160,3)))
+    model.add(BatchNormalization(epsilon=0.001,input_shape=(80,160,3)))
     model.add(Convolution2D(24,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
     model.add(Dropout(0.5))
     model.add(Convolution2D(36,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
@@ -101,6 +101,7 @@ def generator(driveImg):
             load_image = io.imread(img[0])
             #Resize the image so the training goes faster
             load_image = rescale(load_image, 0.5)
+            #Mirror the image
             if img[2] == True:
                 load_image = load_image[:, ::-1]
             images.append(load_image)
