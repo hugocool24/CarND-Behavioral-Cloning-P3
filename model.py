@@ -68,7 +68,7 @@ with open(path+"driving_log.csv") as f:
           images.append((path+center, angle, True))
           images.append((path+left, -(angle + applied_angle), True))
           images.append((path+right, -(angle - applied_angle), True))
-
+'''
 with open(path2+'driving_log.csv') as f:
     reader = csv.reader(f)
     next(reader, None)
@@ -89,7 +89,7 @@ with open(path2+'driving_log.csv') as f:
           images.append((path2+center, angle, True))
           images.append((path2+left, -(angle + applied_angle), True))
           images.append((path2+right, -(angle - applied_angle), True))
-
+'''
 def generator(driveImg):
     batch_size = 16
     image = sklearn.utils.shuffle(driveImg)
