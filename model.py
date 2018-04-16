@@ -57,16 +57,16 @@ with open(path+"driving_log.csv") as f:
         angle = float(row[3])
 
         ### Append non-flipped images
-        images.append((center,angle, False))
-        images.append((left, angle + applied_angle, False))
-        images.append((right,angle - applied_angle, False))
+        images.append((path+center,angle, False))
+        images.append((path+left, angle + applied_angle, False))
+        images.append((path+right,angle - applied_angle, False))
 
 
         ### Append flipped images
         if(random.randint(0,10)>4):
-          images.append((center,angle, True))
-          images.append((left,-(angle + applied_angle), True))
-          images.append((right,-(angle - applied_angle), True))
+          images.append((path+center,angle, True))
+          images.append((path+left,-(angle + applied_angle), True))
+          images.append((path+right,-(angle - applied_angle), True))
 
 with open(path+'driving_log.csv') as f:
     reader = csv.reader(f)
@@ -77,16 +77,16 @@ with open(path+'driving_log.csv') as f:
         angle = float(row[3])
 
         ### Append non-flipped images
-        images.append((center,angle, False))
-        images.append((left, angle + applied_angle, False))
-        images.append((right,angle - applied_angle, False))
+        images.append((path2+center,angle, False))
+        images.append((path2+left, angle + applied_angle, False))
+        images.append((path2+right,angle - applied_angle, False))
 
 
         ### Append flipped images
         if(random.randint(0,10)>4):
-          images.append((center,angle, True))
-          images.append((left,-(angle + applied_angle), True))
-          images.append((right,-(angle - applied_angle), True))
+          images.append((path2+center,angle, True))
+          images.append((path2+left,-(angle + applied_angle), True))
+          images.append((path2+right,-(angle - applied_angle), True))
 
 def generator(driveImg):
     batch_size = 64
