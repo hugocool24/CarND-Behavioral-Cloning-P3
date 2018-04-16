@@ -10,6 +10,13 @@ from skimage import io
 import sklearn
 from skimage.transform import rescale
 from skimage.transform import rotate
+import csv
+import os
+import random
+from matplotlib import pyplot as plt
+import sys
+
+
 def keras_model():
 
     model = Sequential()
@@ -36,12 +43,6 @@ def keras_model():
         outfile.write(json.dumps(json.loads(model.to_json()), indent=2))
     return model
 
-import csv
-import os
-import random
-from matplotlib import pyplot as plt
-import sys
-
 path="./Data/"
 path2="./data2/"
 images = []
@@ -50,9 +51,9 @@ batch_size = 64
 with open(path+"driving_log.csv") as f:
     reader = csv.reader(f)
     for row in reader:
-        center = row[0]
-        left = row[1]
-        right = row[2]
+        center = row[0][65:]
+        left = row[1][65:]
+        right = row[2][65:]
         angle = float(row[3])
 
         ### Append non-flipped images
