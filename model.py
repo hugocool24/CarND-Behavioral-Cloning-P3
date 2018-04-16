@@ -91,7 +91,7 @@ with open(path2+'driving_log.csv') as f:
           images.append((path2+right, -(angle - applied_angle), True))
 
 def generator(driveImg):
-    batch_size = 64
+    batch_size = 32
     image = sklearn.utils.shuffle(driveImg)
     counter = 0
     while True:
@@ -119,7 +119,7 @@ validationGen = generator(validation_images)
 # Train model
 model = keras_model()
 model.compile(loss='mse', optimizer='adam')
-batch_size = 64
+batch_size = 32
 nb_train = len(train_images)
 nb_val = len(validation_images)
 
