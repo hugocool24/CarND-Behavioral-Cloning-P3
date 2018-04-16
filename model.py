@@ -8,7 +8,7 @@ import numpy as np
 from skimage import color
 from skimage import io
 import sklearn
-from skimage.transform import resize
+from skimage.transform import rescale
 from skimage.transform import rotate
 def keras_model():
 
@@ -50,9 +50,9 @@ batch_size = 64
 with open(path+"driving_log.csv") as f:
     reader = csv.reader(f)
     for row in reader:
-        center = row[0][65:]
-        left = row[1][65:]
-        right = row[2][65:]
+        center = row[0]
+        left = row[1]
+        right = row[2]
         angle = float(row[3])
 
         ### Append non-flipped images
@@ -70,9 +70,9 @@ with open(path+"driving_log.csv") as f:
 with open(path+'driving_log.csv') as f:
     reader = csv.reader(f)
     for row in reader:
-        center = row[0][65:]
-        left = row[1][65:]
-        right = row[2][65:]
+        center = row[0]
+        left = row[1]
+        right = row[2]
         angle = float(row[3])
 
         ### Append non-flipped images
@@ -95,9 +95,9 @@ def generator(driveImg):
         images = []
         angles = []
         for img in image:
-            load_image = io.imread(os.path.join(path,img[0]))
+            load_image = io.imread(img[0])
             #Resize the image so the training goes faster
-            load_image = resize(load_image, load_image.shape[0] / 2, load_image.shape[1] / 2)
+            load_image = rescale(load_image, 0.5)
             if img[2] == True:
                 load_image = load_image[:, ::-1]
             images.append(load_image)
