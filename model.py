@@ -20,17 +20,17 @@ import sys
 def keras_model():
 
     model = Sequential()
-    model.add(Cropping2D(cropping=((24,10), (0,0)), input_shape=(80,160,3)))
+    model.add(Cropping2D(cropping=((50,24), (0,0)), input_shape=(80,160,3)))
     model.add(Lambda(lambda x: (x/255) - 0.5))
-    model.add(Convolution2D(12,2,2,border_mode="valid", activation="relu", subsample=(2,2)))
+    model.add(Convolution2D(24,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
     model.add(Dropout(0.25))
-    model.add(Convolution2D(16,2,2,border_mode="valid", activation="relu", subsample=(2,2)))
+    model.add(Convolution2D(36,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
     model.add(Dropout(0.25))
-    model.add(Convolution2D(24,2,2,border_mode="valid", activation="relu", subsample=(2,2)))
+    model.add(Convolution2D(48,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
     model.add(Dropout(0.25))
-    model.add(Convolution2D(32,1,1,border_mode="valid", activation="relu", subsample=(1,1)))
+    model.add(Convolution2D(64,3,3,border_mode="valid", activation="relu", subsample=(1,1)))
     model.add(Dropout(0.25))
-    model.add(Convolution2D(32,1,1,border_mode="valid", activation="relu", subsample=(1,1)))
+    model.add(Convolution2D(64,3,3,border_mode="valid", activation="relu", subsample=(1,1)))
     model.add(Dropout(0.25))
     model.add(Flatten())
     model.add(Dense(1164, activation="relu"))
@@ -43,11 +43,11 @@ def keras_model():
         outfile.write(json.dumps(json.loads(model.to_json()), indent=2))
     return model
 
-path="./Data/"
-path2="./data2/"
+path="./Data/" #Path where I store data I generated
+path2="./data2/" #Path to udacity sample data
 images = []
 applied_angle = 0.2
-batch_size = 16
+batch_size = 32
 '''
 with open(path+"driving_log.csv") as f:
     reader = csv.reader(f)
@@ -69,6 +69,8 @@ with open(path+"driving_log.csv") as f:
           images.append((path+left, -(angle + applied_angle), True))
           images.append((path+right, -(angle - applied_angle), True))
 '''
+
+# Make a list of paths to images.
 with open(path2+'driving_log.csv') as f:
     reader = csv.reader(f)
     next(reader, None)
@@ -90,6 +92,7 @@ with open(path2+'driving_log.csv') as f:
           images.append((path2+left, -(angle + applied_angle), True))
           images.append((path2+right, -(angle - applied_angle), True))
 
+#Generator to generate batches of images to train on
 def generator(driveImg):
     batch_size = 16
     image = sklearn.utils.shuffle(driveImg)
@@ -100,7 +103,7 @@ def generator(driveImg):
         for img in image:
             load_image = io.imread(img[0])
             #Resize the image so the training goes faster
-            load_image = rescale(load_image, 0.5)
+            #load_image = rescale(load_image, 0.5)
             if img[2] == True:
                 load_image = load_image[:, ::-1]
             images.append(load_image)
@@ -110,8 +113,10 @@ def generator(driveImg):
                 y_train = np.array(angles)
                 yield X_train, y_train
 
+#Shuffle data into validation set och training set
 from sklearn.model_selection import train_test_split
 train_images, validation_images = train_test_split(images, test_size=0.2)
+
 trainGen = generator(train_images)
 validationGen = generator(validation_images)
 
@@ -130,3 +135,4 @@ model.fit_generator(trainGen,
                    verbose = 1)
 
 model.save("../model.h5")
+K.clear_session()
