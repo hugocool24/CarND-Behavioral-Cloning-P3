@@ -43,7 +43,7 @@ def keras_model():
         outfile.write(json.dumps(json.loads(model.to_json()), indent=2))
     return model
 
-path = "./Data/" #Path to self-collected data
+paths =("./Data_curves/","./Data/") #Path to self-collected data
 path2="./data2/" #Path to udacity sample data
 images = []
 applied_angle = 0.2
@@ -71,25 +71,25 @@ with open(path2 + 'driving_log.csv') as f:
           images.append((path2+left, -(angle + applied_angle), True))
           images.append((path2+right, -(angle - applied_angle), True))
 
-with open(path + 'driving_log.csv') as f:
-    reader = csv.reader(f)
-    for row in reader:
-        center = row[0][65:]
-        left = row[1][65:]
-        right = row[2][65:]
-        angle = float(row[3])
+for path in paths:
+    with open(path + 'driving_log.csv') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            center = row[0][65:]
+            left = row[1][65:]
+            right = row[2][65:]
+            angle = float(row[3])
 
-        ### Append non-flipped images
-        images.append((path+center,angle, False))
-        images.append((path+left, angle + applied_angle, False))
-        images.append((path+right,angle - applied_angle, False))
+            ### Append non-flipped images
+            images.append((path+center,angle, False))
+            images.append((path+left, angle + applied_angle, False))
+            images.append((path+right,angle - applied_angle, False))
 
+            ### Append flipped images
+            images.append((path+center,angle, True))
+            images.append((path+left,-(angle + applied_angle), True))
+            images.append((path+right,-(angle - applied_angle), True))
 
-        ### Append flipped images
-        if(random.randint(0,10)>4):
-          images.append((path+center,angle, True))
-          images.append((path+left,-(angle + applied_angle), True))
-          images.append((path+right,-(angle - applied_angle), True))
 #Generator to generate batches of images to train on
 def generator(driveImg):
     batch_size = 32
