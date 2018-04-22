@@ -8,12 +8,11 @@ import numpy as np
 from skimage import color
 from skimage import io
 import sklearn
-from skimage.transform import rescale
 from skimage.transform import rotate
+from sklearn.model_selection import train_test_split
 import csv
 import os
 import random
-from matplotlib import pyplot as plt
 import sys
 
 
@@ -44,7 +43,7 @@ def keras_model():
     return model
 
 paths =("./Data_curves/","./Data/") #Path to self-collected data
-path2="./data2/" #Path to udacity sample data
+path2="./data/" #Path to udacity sample data
 images = []
 applied_angle = 0.2
 batch_size = 32
@@ -93,15 +92,12 @@ for path in paths:
 #Generator to generate batches of images to train on
 def generator(driveImg):
     batch_size = 32
-    image = sklearn.utils.shuffle(driveImg)
-    counter = 0
     while True:
+        image = sklearn.utils.shuffle(driveImg)
         images = []
         angles = []
         for img in image:
             load_image = io.imread(img[0])
-            #Resize the image so the training goes faster
-            #load_image = rescale(load_image, 0.5)
             if img[2] == True:
                 load_image = load_image[:, ::-1]
             images.append(load_image)
@@ -112,7 +108,6 @@ def generator(driveImg):
                 yield X_train, y_train
 
 #Shuffle data into validation set och training set
-from sklearn.model_selection import train_test_split
 train_images, validation_images = train_test_split(images, test_size=0.2)
 
 trainGen = generator(train_images)
