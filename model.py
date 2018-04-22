@@ -43,7 +43,7 @@ def keras_model():
         outfile.write(json.dumps(json.loads(model.to_json()), indent=2))
     return model
 
-paths =("./Data_curves/","./Data/") #Path to self-collected data
+paths =("./Data_curves/","./Data/","./Data_bridge") #Path to self-collected data
 path2="./data/" #Path to udacity sample data
 images = []
 applied_angle = 0.2
