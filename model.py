@@ -8,7 +8,7 @@ import numpy as np
 from skimage import color
 from skimage import io
 import sklearn
-from skimage.transform import rotate
+from skimage.transform import rotate, resize
 from sklearn.model_selection import train_test_split
 import csv
 import os
@@ -20,6 +20,7 @@ def keras_model():
 
     model = Sequential()
     model.add(Cropping2D(cropping=((50,24), (0,0)), input_shape=(160,320,3)))
+    model.add(Lambda(lambda images: tf.image.resize_images(images, (66, 200)))
     model.add(Lambda(lambda x: (x/255) - 0.5))
     model.add(Convolution2D(24,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
     model.add(Dropout(0.25))
@@ -84,10 +85,10 @@ for path in paths:
             images.append((path+left, angle + applied_angle, False))
             images.append((path+right,angle - applied_angle, False))
 
-            ### Append flipped images
-            images.append((path+center,angle, True))
-            images.append((path+left,-(angle + applied_angle), True))
-            images.append((path+right,-(angle - applied_angle), True))
+        if(random.randint(0,10)>4):
+          images.append((path2+center, angle, True))
+          images.append((path2+left, -(angle + applied_angle), True))
+          images.append((path2+right, -(angle - applied_angle), True))
 
 #Generator to generate batches of images to train on
 def generator(driveImg):
