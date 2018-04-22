@@ -19,7 +19,7 @@ import sys
 def keras_model():
 
     model = Sequential()
-    model.add(Cropping2D(cropping=((50,24), (0,0)), input_shape=(160,320,3)))
+    #model.add(Cropping2D(cropping=((50,24), (0,0)), input_shape=(160,320,3)))
     model.add(Lambda(lambda x: x / 255.0 - 0.5))
 
     model.add(Convolution2D(6, 5, 5, subsample=(1, 1), border_mode="valid"))
@@ -62,11 +62,9 @@ with open(path + 'driving_log.csv') as f:
         left = row[1].replace(" ", "")
         right = row[2].replace(" ", "")
         angle = float(row[3].replace(" ", ""))
-        #Pick Center, left, right image randomly
-        ### Append non-flipped images
-        randomly = random.randint(0,10)
-        zero = float(0)
-        if abs(angle) and np.random.random() < zero_angle:
+
+        #Only pick 75% of the images where the car has an angle 0 less then 0.1
+        if abs(angle) < 0.1 and np.random.random() < zero_angle:
             images.append((path+center, angle, False))
             images.append((path+left, angle + applied_angle, False))
             images.append((path+right, angle - applied_angle, False))
@@ -76,8 +74,8 @@ with open(path + 'driving_log.csv') as f:
             images.append((path+right, -(angle - applied_angle), True))
 
 #Generator to generate batches of images to train on
-def generator(driveImg):
-    batch_size = 64
+def generator(driveImg, batch_size=64):
+
     while True:
         image = sklearn.utils.shuffle(driveImg)
         images = []
@@ -86,6 +84,8 @@ def generator(driveImg):
             load_image = io.imread(img[0])
             if img[2] == True:
                 load_image = load_image[:, ::-1]
+            roi = load_image[60:140, :, :]
+            load_image = resize(roi, (64, 64))
             images.append(load_image)
             angles.append(img[1])
             if  len(images) == batch_size:
@@ -96,13 +96,12 @@ def generator(driveImg):
 #Shuffle data into validation set och training set
 train_images, validation_images = train_test_split(images, test_size=0.2)
 
-trainGen = generator(train_images)
-validationGen = generator(validation_images)
+trainGen = generator(train_images, batch_size = 64)
+validationGen = generator(validation_images, batch_size = 64)
 
 # Train model
 model = keras_model()
 model.compile(loss='mse', optimizer='adam')
-batch_size = 64
 nb_train = len(train_images)
 nb_val = len(validation_images)
 
@@ -110,7 +109,7 @@ model.fit_generator(trainGen,
                    samples_per_epoch = nb_train // batch_size,
                    validation_data = validationGen,
                    nb_val_samples = nb_val // batch_size,
-                   nb_epoch = 1,
-                   verbose = 1)
+                   nb_epoch = 10,
+                   verbose = 5)
 
 model.save("model.h5")
