@@ -3,7 +3,7 @@ from keras.layers.core import Dense, Activation, Flatten
 from keras.layers.convolutional import Convolution2D
 from keras.layers.pooling import MaxPooling2D
 from keras.layers import BatchNormalization,Input, Cropping2D, Dropout, Lambda
-#from keras import backend as K
+from keras.layers.advanced_activations import ELU
 import json
 import numpy as np
 from skimage import color
@@ -15,7 +15,6 @@ import csv
 import os
 import random
 import sys
-import tensorflow as tf
 
 def keras_model():
 
@@ -45,7 +44,7 @@ def keras_model():
     model.add(ELU())
 
     model.add(Dense(1))
-
+    model.summary()
     return model
 
 
@@ -53,7 +52,7 @@ path=("./data/") #Path to udacity sample data
 images = []
 applied_angle = 0.15
 batch_size = 64
-
+zero_angle = 0.75
 # Make a list of paths to images.
 with open(path + 'driving_log.csv') as f:
     reader = csv.reader(f)
@@ -66,7 +65,8 @@ with open(path + 'driving_log.csv') as f:
         #Pick Center, left, right image randomly
         ### Append non-flipped images
         randomly = random.randint(0,10)
-        if row[3] == 0 and randomly < 8:
+        zero = float(0)
+        if abs(angle) and np.random.random() < zero_angle:
             images.append((path+center, angle, False))
             images.append((path+left, angle + applied_angle, False))
             images.append((path+right, angle - applied_angle, False))
