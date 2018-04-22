@@ -21,37 +21,41 @@ def keras_model():
 
     model = Sequential()
     model.add(Cropping2D(cropping=((50,24), (0,0)), input_shape=(160,320,3)))
-    model.add(Lambda(lambda images: tf.image.resize_images(images, (66, 200))))
-    model.add(Lambda(lambda x: (x/255) - 0.5))
-    model.add(Convolution2D(24,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
-    model.add(Dropout(0.25))
-    model.add(Convolution2D(36,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
-    model.add(Dropout(0.25))
-    model.add(Convolution2D(48,5,5,border_mode="valid", activation="relu", subsample=(2,2)))
-    model.add(Dropout(0.25))
-    model.add(Convolution2D(64,3,3,border_mode="valid", activation="relu", subsample=(1,1)))
-    model.add(Dropout(0.25))
-    model.add(Convolution2D(64,3,3,border_mode="valid", activation="relu", subsample=(1,1)))
-    model.add(Dropout(0.25))
+    model.add(Lambda(lambda x: x / 255.0 - 0.5))
+
+    model.add(Convolution2D(6, 5, 5, subsample=(1, 1), border_mode="valid"))
+    model.add(ELU())
+    model.add(MaxPooling2D(pool_size=(2, 2), border_mode='valid'))
+
+    model.add(Convolution2D(16, 5, 5, subsample=(1, 1), border_mode="valid"))
+    model.add(ELU())
+    model.add(MaxPooling2D(pool_size=(2, 2), border_mode='valid'))
+
     model.add(Flatten())
-    model.add(Dense(1164, activation="relu"))
-    model.add(Dense(100, activation="relu"))
-    model.add(Dense(50, activation="relu"))
-    model.add(Dense(10, activation="relu"))
-    model.add(Dense(1, activation='tanh'))
-    model.summary()
-    with open("autopilot_game.json", "w") as outfile:
-        outfile.write(json.dumps(json.loads(model.to_json()), indent=2))
+
+    model.add(Dropout(0.5))
+    model.add(Dense(120))
+    model.add(ELU())
+
+    model.add(Dropout(0.5))
+    model.add(Dense(84))
+    model.add(ELU())
+
+    model.add(Dense(10))
+    model.add(ELU())
+
+    model.add(Dense(1))
+
     return model
 
-paths =("./Data_curves/","./Data/","./Data_bridge/") #Path to self-collected data
-path2=("./data/") #Path to udacity sample data
+
+path=("./data/") #Path to udacity sample data
 images = []
-applied_angle = 0.25
-batch_size = 32
+applied_angle = 0.15
+batch_size = 64
 
 # Make a list of paths to images.
-with open(path2 + 'driving_log.csv') as f:
+with open(path + 'driving_log.csv') as f:
     reader = csv.reader(f)
     next(reader, None)
     for row in reader:
@@ -62,47 +66,14 @@ with open(path2 + 'driving_log.csv') as f:
         #Pick Center, left, right image randomly
         ### Append non-flipped images
         randomly = random.randint(0,10)
-        if randomly<4:
-            images.append((path2+center, angle, False))
-        elif randomly<6:
-            images.append((path2+left, angle + applied_angle, False))
-        else:
-            images.append((path2+right, angle - applied_angle, False))
-
-        ### Append flipped images randomly
-        if randomly<4:
-            images.append((path2+center, angle, True))
-        elif randomly<6:
-            images.append((path2+left, -(angle + applied_angle), True))
-        else:
-            images.append((path2+right, -(angle - applied_angle), True))
-
-for path in paths:
-    with open(path + 'driving_log.csv') as f:
-        reader = csv.reader(f)
-        for row in reader:
-            center = row[0][65:]
-            left = row[1][65:]
-            right = row[2][65:]
-            angle = float(row[3])
-
-            #Randomly pick an image between center, right and left. More center images
-            randomly = random.randint(0,10)
-            if randomly<4:
-                images.append((path+center, angle, False))
-            elif randomly<6:
-                images.append((path+left, angle + applied_angle, False))
-            else:
-                images.append((path+right, angle - applied_angle, False))
-
-            #Randomly pick an image between center, right and left. More center images
+        if row[3] == 0 and randomly < 8:
+            images.append((path+center, angle, False))
+            images.append((path+left, angle + applied_angle, False))
+            images.append((path+right, angle - applied_angle, False))
             ### Append flipped images randomly
-            if randomly<4:
-                images.append((path+center, angle, True))
-            elif randomly<6:
-                images.append((path+left, -(angle + applied_angle), True))
-            else:
-                images.append((path+right, -(angle - applied_angle), True))
+            images.append((path+center, angle, True))
+            images.append((path+left, -(angle + applied_angle), True))
+            images.append((path+right, -(angle - applied_angle), True))
 
 #Generator to generate batches of images to train on
 def generator(driveImg):
