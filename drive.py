@@ -15,7 +15,7 @@ from io import BytesIO
 from keras.models import load_model
 import h5py
 from keras import __version__ as keras_version
-from skimage.transform import rescale
+from skimage.transform import resize
 
 sio = socketio.Server()
 app = Flask(__name__)
@@ -62,9 +62,9 @@ def telemetry(sid, data):
         imgString = data["image"]
         image = Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
-        #image_array = rescale(image_array, 0.5)
-        #image_array = np.asarray(load)
-        steering_angle = float(model.predict(image_array[None, :, :, :], batch_size=1))
+        roi = image_array[65:135, :, :]
+        load_image = resize(roi, (64, 64),mode='constant')
+        steering_angle = float(model.predict(load_image[None, :, :, :], batch_size=1))
 
         throttle = controller.update(float(speed))
 
