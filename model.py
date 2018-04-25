@@ -1,115 +1,124 @@
-from keras.models import Sequential
-from keras.layers.core import Dense, Activation, Flatten
-from keras.layers.convolutional import Convolution2D
-from keras.layers.pooling import MaxPooling2D
-from keras.layers import BatchNormalization,Input, Cropping2D, Dropout, Lambda
-from keras.layers.advanced_activations import ELU
-import json
 import numpy as np
-from skimage import color
-from skimage import io
-import sklearn
-from skimage.transform import rotate, resize
-from sklearn.model_selection import train_test_split
-import csv
-import os
-import random
-import sys
+import pandas as pd
+from keras.models import Sequential
+from keras.layers import Convolution2D, ELU, Flatten, Dropout, Dense, Lambda, MaxPooling2D, Activation
+from keras.preprocessing.image import img_to_array, load_img
+import cv2
 
 def keras_model():
-
     model = Sequential()
-    #model.add(Cropping2D(cropping=((50,24), (0,0)), input_shape=(160,320,3)))
-    model.add(Lambda(lambda x: x / 255.0 - 0.5))
 
-    model.add(Convolution2D(6, 5, 5, subsample=(1, 1), border_mode="valid"))
+    model.add(Convolution2D(32, 5, 5, input_shape=(64, 64, 3), subsample=(2, 2), border_mode="same"))
     model.add(ELU())
-    model.add(MaxPooling2D(pool_size=(2, 2), border_mode='valid'))
 
-    model.add(Convolution2D(16, 5, 5, subsample=(1, 1), border_mode="valid"))
+    model.add(Convolution2D(16, 3, 3, subsample=(1, 1), border_mode="valid"))
     model.add(ELU())
-    model.add(MaxPooling2D(pool_size=(2, 2), border_mode='valid'))
+    model.add(Dropout(0.4))
+    model.add(MaxPooling2D((2, 2), border_mode='valid'))
+
+    model.add(Convolution2D(16, 3, 3, subsample=(1, 1), border_mode="valid"))
+    model.add(ELU())
+    model.add(Dropout(0.4))
 
     model.add(Flatten())
 
-    model.add(Dropout(0.5))
-    model.add(Dense(120))
+    model.add(Dense(1024))
+    model.add(Dropout(0.3))
     model.add(ELU())
 
-    model.add(Dropout(0.5))
-    model.add(Dense(84))
-    model.add(ELU())
-
-    model.add(Dense(10))
+    model.add(Dense(512))
     model.add(ELU())
 
     model.add(Dense(1))
+
+    model.compile(optimizer="adam", loss="mse")
     model.summary()
+
     return model
 
+def randomImage(row, applied_angle = 0.25):
+    angle = row['steering']
+    pickCamera = np.random.choice(['center', 'left', 'right'])
+    if pickCamera == 'left':
+        angle += applied_angle
+    elif pickCamera == 'right':
+        angle -= applied_angle
 
-path=("./data/") #Path to udacity sample data
-images = []
-applied_angle = 0.15
-batch_size = 64
-zero_angle = 0.75
-# Make a list of paths to images.
-with open(path + 'driving_log.csv') as f:
-    reader = csv.reader(f)
-    next(reader, None)
-    for row in reader:
-        center = row[0].replace(" ", "")
-        left = row[1].replace(" ", "")
-        right = row[2].replace(" ", "")
-        angle = float(row[3].replace(" ", ""))
+    image = load_img("data/" + row[pickCamera].strip())
+    image = img_to_array(image)
 
-        #Only pick 75% of the images where the car has an angle 0 less then 0.1
-        if abs(angle) < 0.1 and np.random.random() < zero_angle:
-            images.append((path+center, angle, False))
-            images.append((path+left, angle + applied_angle, False))
-            images.append((path+right, angle - applied_angle, False))
-            ### Append flipped images randomly
-            images.append((path+center, angle, True))
-            images.append((path+left, -(angle + applied_angle), True))
-            images.append((path+right, -(angle - applied_angle), True))
+    #Invert the image to generate different kind of training data
+    flipRate = np.random.random()
+    if flipRate > 0.5:
+        angle = -1*angle
+        image = cv2.flip(image, 1)
 
-#Generator to generate batches of images to train on
+    #Perform random brightness
+    imageBright = cv2.cvtColor(image,cv2.COLOR_RGB2HSV)
+    random_bright = .25+np.random.uniform()
+    # Change brightness channel to a random value + 0.25 in offset
+    imageBright[:,:,2] = imageBright[:,:,2]*random_bright
+    imageBright = cv2.cvtColor(imageBright,cv2.COLOR_HSV2RGB)
+
+    # Crop and resize
+    cropImage = imageBright[55:135, :, :]
+    cropImage = cv2.resize(cropImage, (64,64))
+    cropImage = cropImage.astype(np.float32)
+    cropImage = cropImage/255.0 - 0.5
+
+    return cropImage, angle
+
+#Generator to generate batches of images to train/val on
 def generator(driveImg, batch_size=64):
+    numSamples = driveImg.shape[0]
+    batches_per_epoch = numSamples // batch_size
+    i = 0
 
     while True:
-        image = sklearn.utils.shuffle(driveImg)
-        images = []
-        angles = []
-        for img in image:
-            load_image = io.imread(img[0])
-            if img[2] == True:
-                load_image = load_image[:, ::-1]
-            roi = load_image[60:140, :, :]
-            load_image = resize(roi, (64, 64))
-            images.append(load_image)
-            angles.append(img[1])
-            if  len(images) == batch_size:
-                X_train = np.array(images)
-                y_train = np.array(angles)
-                yield X_train, y_train
+        batchStart = i*batch_size
+        batchEnd = batchStart+batch_size - 1
+        X_train = np.zeros((batch_size, 64, 64, 3), dtype=np.float32)
+        y_train = np.zeros((batch_size,), dtype=np.float32)
+        j = 0
 
-#Shuffle data into validation set och training set
-train_images, validation_images = train_test_split(images, test_size=0.2)
+        for counter, row in driveImg.loc[batchStart:batchEnd].iterrows():
+            X_train[j], y_train[j] = randomImage(row)
+            j += 1
+
+        i += 1
+        if i == batches_per_epoch - 1:
+            i = 0
+
+        yield X_train, y_train
+
+batch_size = 64
+applied_angle = 0.25
+#Read in CSV file
+data_frame = pd.read_csv('data/driving_log.csv', usecols=[0, 1, 2, 3])
+#Shuffle the data
+data_frame = data_frame.sample(frac=1).reset_index(drop=True)
+
+#Training validation split
+num_rows_training = int(data_frame.shape[0]*0.8)
+#Train Data
+train_images = data_frame.loc[0:num_rows_training-1]
+#Val Data
+validation_images = data_frame.loc[num_rows_training:]
+data_frame = None
 
 trainGen = generator(train_images, batch_size = 64)
 validationGen = generator(validation_images, batch_size = 64)
 
 # Train model
 model = keras_model()
-model.compile(loss='mse', optimizer='adam')
-nb_train = len(train_images)
-nb_val = len(validation_images)
 
+samples_per_epoch = (20000//batch_size)*batch_size
 model.fit_generator(trainGen,
-                   samples_per_epoch = nb_train // batch_size,
+                   samples_per_epoch = samples_per_epoch,
                    validation_data = validationGen,
-                   nb_val_samples = nb_val // batch_size,
-                   nb_epoch = 10,
-                   verbose = 5)
+                   nb_val_samples = 3000,
+                   nb_epoch = 3)
 
 model.save("model.h5")
+with open("autopilot_game.json", "w") as outfile:
+    outfile.write(model.to_json())
